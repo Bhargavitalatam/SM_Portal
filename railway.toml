@@ -1,0 +1,15 @@
+[build]
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "node src/server.js"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
+
+[[envs]]
+NODE_ENV = "production"
+PORT = "3000"
+JWT_EXPIRES_IN = "1h"
+ALLOWED_ORIGINS = "*"

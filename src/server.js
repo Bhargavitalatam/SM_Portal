@@ -20,8 +20,9 @@ async function initDatabase() {
     await sequelize.sync({ force: false, alter: false });
     console.log('[Server] Database synchronized.');
 
-    // Run seeder if SEED_ON_START is set
-    if (process.env.SEED_ON_START === 'true') {
+    // Always seed in production (idempotent — uses findOrCreate)
+    // Also seeds when SEED_ON_START=true in development
+    if (process.env.NODE_ENV === 'production' || process.env.SEED_ON_START === 'true') {
       const { seed } = require('../seeders/seed');
       await seed();
       console.log('[Server] Seeding complete.');
