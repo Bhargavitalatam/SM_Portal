@@ -28,7 +28,7 @@ async function initDatabase() {
       console.log('[Server] Seeding complete.');
     }
   } catch (err) {
-    console.error('[Server] Database initialization error:', err.message);
+    console.error('[Server] Database initialization error:', err);
     // Do not crash — keep server running so healthcheck passes
   }
 }
