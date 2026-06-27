@@ -13,8 +13,6 @@ services:
         fromDatabase:
           name: sm-portal-db
           property: connectionString
-      - key: DB_SSL
-        value: "true"
       - key: REDIS_HOST
         fromService:
           type: redis
@@ -35,6 +33,14 @@ services:
         value: admin@grantportal.com
       - key: ADMIN_PASSWORD
         value: Admin@123456
+      - key: OAUTH_CLIENT_ID
+        value: placeholder_github_client_id
+      - key: OAUTH_CLIENT_SECRET
+        value: placeholder_github_client_secret
+      - key: OAUTH_CALLBACK_URL
+        value: https://sm-portal-app.onrender.com/api/auth/github/callback
+      - key: ALLOWED_ORIGINS
+        value: "*"
 
   - type: redis
     name: sm-portal-redis

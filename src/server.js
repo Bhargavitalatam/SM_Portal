@@ -14,8 +14,8 @@ async function startServer() {
     await sequelize.authenticate();
     console.log('[Server] Database connection established.');
 
-    // Sync models (create tables if they don't exist, don't alter existing)
-    await sequelize.sync({ force: false, alter: false });
+    // Sync models — creates tables if missing, never drops existing data
+    await sequelize.sync({ force: false, alter: true });
     console.log('[Server] Database synchronized.');
 
     // Run seeder if SEED_ON_START is set
