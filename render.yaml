@@ -9,20 +9,6 @@ services:
         value: production
       - key: PORT
         value: 3000
-      - key: DATABASE_URL
-        fromDatabase:
-          name: sm-portal-db
-          property: connectionString
-      - key: REDIS_HOST
-        fromService:
-          type: redis
-          name: sm-portal-redis
-          property: host
-      - key: REDIS_PORT
-        fromService:
-          type: redis
-          name: sm-portal-redis
-          property: port
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_EXPIRES_IN
@@ -41,14 +27,3 @@ services:
         value: https://sm-portal-app.onrender.com/api/auth/github/callback
       - key: ALLOWED_ORIGINS
         value: "*"
-
-  - type: redis
-    name: sm-portal-redis
-    plan: free
-    ipAllowList: []
-
-databases:
-  - name: sm-portal-db
-    databaseName: gmpdb
-    user: gmpuser
-    plan: free

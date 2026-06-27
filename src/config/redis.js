@@ -20,10 +20,10 @@ const host = REDIS_HOST || REDISHOST || 'localhost';
 const port = parseInt(REDIS_PORT || REDISPORT || 6379);
 const password = REDIS_PASSWORD || REDISPASSWORD || undefined;
 
-let redis;
+const isRedisConfigured = REDIS_URL || REDIS_HOST || REDISHOST;
 
-if (NODE_ENV === 'test') {
-  // In test mode, create a mock redis client
+if (NODE_ENV === 'test' || !isRedisConfigured) {
+  // In test/fallback mode, create a mock redis client
   redis = {
     get: async () => null,
     set: async () => 'OK',
