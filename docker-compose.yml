@@ -1,0 +1,96 @@
+services:
+  # ─── PostgreSQL Database ───────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: gmp_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-gmpuser}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-gmppassword}
+      POSTGRES_DB: ${DB_NAME:-gmpdb}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-gmpuser} -d ${DB_NAME:-gmpdb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - gmp_network
+
+  # ─── Redis Cache ───────────────────────────────────────────────────────────
+  cache:
+    image: redis:7-alpine
+    container_name: gmp_cache
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redispassword} --loglevel warning
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redispassword}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - gmp_network
+
+  # ─── Application Service ───────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: gmp_app
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-gmpuser}
+      DB_PASSWORD: ${DB_PASSWORD:-gmppassword}
+      DB_NAME: ${DB_NAME:-gmpdb}
+      DATABASE_URL: postgres://${DB_USER:-gmpuser}:${DB_PASSWORD:-gmppassword}@db:5432/${DB_NAME:-gmpdb}
+      REDIS_HOST: cache
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redispassword}
+      JWT_SECRET: ${JWT_SECRET:-your_super_secret_jwt_key_change_in_production}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h}
+      OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID:-your_github_client_id}
+      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET:-your_github_client_secret}
+      OAUTH_CALLBACK_URL: ${OAUTH_CALLBACK_URL:-http://localhost:3000/api/auth/github/callback}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@grantportal.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin@123456}
+      SEED_ON_START: "true"
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - gmp_network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  gmp_network:
+    driver: bridge
