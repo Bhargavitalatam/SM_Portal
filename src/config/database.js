@@ -13,8 +13,11 @@ const {
   NODE_ENV,
 } = process.env;
 
-const sequelize = DATABASE_URL
-  ? new Sequelize(DATABASE_URL, {
+// Connect to Postgres if DATABASE_URL or custom remote host is provided
+const isPostgresAvailable = DATABASE_URL || (DB_HOST && DB_HOST !== 'localhost');
+
+const sequelize = isPostgresAvailable
+  ? new Sequelize(DATABASE_URL || `postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}`, {
       dialect: 'postgres',
       logging: NODE_ENV === 'development' ? console.log : false,
       pool: {
@@ -28,17 +31,10 @@ const sequelize = DATABASE_URL
           ? { ssl: { require: true, rejectUnauthorized: false } }
           : {},
     })
-  : new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
-      host: DB_HOST || 'localhost',
-      port: parseInt(DB_PORT) || 5432,
-      dialect: 'postgres',
+  : new Sequelize({
+      dialect: 'sqlite',
+      storage: './database.sqlite',
       logging: NODE_ENV === 'development' ? console.log : false,
-      pool: {
-        max: 10,
-        min: 0,
-        acquire: 30000,
-        idle: 10000,
-      },
     });
 
 module.exports = sequelize;

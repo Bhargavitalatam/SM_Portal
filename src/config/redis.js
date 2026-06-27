@@ -37,7 +37,7 @@ if (NODE_ENV === 'test') {
   // Support full REDIS_URL (Railway injects this) or individual host/port vars
   redis = REDIS_URL
     ? new Redis(REDIS_URL, {
-        retryStrategy: (times) => Math.min(times * 50, 2000),
+        retryStrategy: (times) => times > 3 ? null : Math.min(times * 100, 2000),
         maxRetriesPerRequest: 3,
         lazyConnect: true,
       })
@@ -45,7 +45,7 @@ if (NODE_ENV === 'test') {
         host,
         port,
         password,
-        retryStrategy: (times) => Math.min(times * 50, 2000),
+        retryStrategy: (times) => times > 3 ? null : Math.min(times * 100, 2000),
         maxRetriesPerRequest: 3,
         lazyConnect: true,
       });
