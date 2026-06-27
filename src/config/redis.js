@@ -22,6 +22,8 @@ const password = REDIS_PASSWORD || REDISPASSWORD || undefined;
 
 const isRedisConfigured = REDIS_URL || REDIS_HOST || REDISHOST;
 
+let redis;
+
 if (NODE_ENV === 'test' || !isRedisConfigured) {
   // In test/fallback mode, create a mock redis client
   redis = {
