@@ -3,6 +3,9 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Install build tools needed for native modules (sqlite3, etc.)
+RUN apk add --no-cache python3 make g++
+
 # Copy dependency files
 COPY package*.json ./
 
@@ -21,12 +24,15 @@ RUN addgroup -g 1001 -S nodejs && \
 
 WORKDIR /app
 
+# Install build tools for native modules, wget for health check
+RUN apk add --no-cache python3 make g++ wget
+
 # Copy package files and install production only
 COPY package*.json ./
 RUN npm ci --only=production && npm cache clean --force
 
-# Install wget for health check
-RUN apk add --no-cache wget
+# Remove build tools to reduce final image size
+RUN apk del python3 make g++
 
 # Copy source from builder
 COPY --from=builder /app/src ./src
@@ -40,7 +46,7 @@ USER appuser
 EXPOSE 3000
 
 # Health check
-HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=5 \
+HEALTHCHECK --interval=15s --timeout=5s --start-period=40s --retries=5 \
   CMD wget -qO- http://localhost:3000/health || exit 1
 
 CMD ["node", "src/server.js"]
