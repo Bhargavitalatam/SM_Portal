@@ -45,6 +45,30 @@ app.get('/health', (req, res) => {
   });
 });
 
+// ─── Temp Debug Endpoint ──────────────────────────────────────────────────────
+app.get('/api/debug', (req, res) => {
+  res.status(200).json({
+    databaseError: global.dbError ? {
+      name: global.dbError.name,
+      message: global.dbError.message,
+      original: global.dbError.original ? {
+        code: global.dbError.original.code,
+        message: global.dbError.original.message
+      } : null
+    } : null,
+    redisStatus: require('./config/redis').status || 'unknown',
+    env: {
+      DATABASE_URL_PRESENT: !!process.env.DATABASE_URL,
+      REDIS_URL_PRESENT: !!process.env.REDIS_URL,
+      NODE_ENV: process.env.NODE_ENV,
+      DB_HOST: process.env.DB_HOST,
+      DB_USER: process.env.DB_USER,
+      DB_NAME: process.env.DB_NAME,
+      DB_SSL: process.env.DB_SSL
+    }
+  });
+});
+
 // ─── API Routes ───────────────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/grants', grantRoutes);
