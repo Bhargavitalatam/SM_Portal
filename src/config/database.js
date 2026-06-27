@@ -24,7 +24,7 @@ const sequelize = DATABASE_URL
         idle: 10000,
       },
       dialectOptions:
-        NODE_ENV === 'production'
+        process.env.DB_SSL === 'true'
           ? { ssl: { require: true, rejectUnauthorized: false } }
           : {},
     })
